@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "A simple Rust program that mangles and parse C++ symbol names using Itanium ABI."
+repository = "https://github.com/NightProg/mangler"
+homepage = "https://github.com/NightProg/mangler"
+readme = "README.md"
+keywords = ["mangle", "cpp", "c++", "itanium", "abi"]
 
 
 [dependencies]
