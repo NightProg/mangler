@@ -7,7 +7,7 @@ use mangler::*;
 
 fn main() {
     let mangled = mangle("foo::bar::hello(int, float, std::string)");
-    println!("{}", mangled) // _ZN3foo3bar5helloEifSs
+    println!("{}", mangled); // _ZN3foo3bar5helloEifSs
 
     let mangled = mangle(
         Symbol::Function(
