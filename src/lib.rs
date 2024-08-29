@@ -1,4 +1,3 @@
-
 use pest::iterators::Pair;
 use pest::Parser;
 use pest_derive::Parser;
@@ -99,7 +98,7 @@ impl Symbol {
 
 
 #[derive(Debug, Clone)]
-pub struct Mangler {
+struct Mangler {
     used_namespace: Vec<Symbol>,
     should_be_const: bool
 }
@@ -229,12 +228,30 @@ impl Mangler {
     }
 }
 
-pub fn mangle(s: String) -> String {
-    let symbol = Symbol::parse(&s);
+pub fn mangle(s: impl ToSymbol) -> String {
     let mut mangled = Mangler::new();
-    "_Z".to_string() + &mangled.mangle(symbol)
+    "_Z".to_string() + &mangled.mangle(s.to_symbol())
 }
-pub fn mangle_symbol(s: Symbol) -> String {
-    let mut mangled = Mangler::new();
-    "_Z".to_string() + &mangled.mangle(s)
+
+
+pub trait ToSymbol {
+    fn to_symbol(&self) -> Symbol;
+}
+
+impl ToSymbol for String {
+    fn to_symbol(&self) -> Symbol {
+        Symbol::parse(self)
+    }
+}
+
+impl ToSymbol for &str {
+    fn to_symbol(&self) -> Symbol {
+        Symbol::parse(self)
+    }
+}
+
+impl ToSymbol for Symbol {
+    fn to_symbol(&self) -> Symbol {
+        self.clone()
+    }
 }
