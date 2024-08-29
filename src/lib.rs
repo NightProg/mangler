@@ -25,7 +25,6 @@ pub enum TypedElement {
 }
 
 impl Symbol {
-
     fn parse_pair(pair: Pair<Rule>) -> Symbol {
         match pair.as_rule() {
             Rule::namespace => {
@@ -34,7 +33,7 @@ impl Symbol {
                     namespace.push(Symbol::parse_pair(pair));
                 }
                 Symbol::Namespace(namespace)
-            },
+            }
             Rule::function => {
                 let mut pairs = pair.into_inner();
                 let func = pairs.next().unwrap();
@@ -45,87 +44,81 @@ impl Symbol {
                 } else {
                     false
                 };
-                for pair in pairs.clone().take(if is_const { pairs.len() - 1 } else { pairs.len() }) {
+                for pair in pairs.clone().take(if is_const {
+                    pairs.len() - 1
+                } else {
+                    pairs.len()
+                }) {
                     args.push(Symbol::parse_pair(pair));
                 }
                 let func = Symbol::Function(Box::new(func), args);
                 if is_const {
-                    return Symbol::Typed(Box::new(func), vec![TypedElement::Const])
+                    return Symbol::Typed(Box::new(func), vec![TypedElement::Const]);
                 }
                 func
-
-            },
+            }
             Rule::generic => {
                 let mut generic = Vec::new();
                 for pair in pair.into_inner() {
                     generic.push(Symbol::parse_pair(pair));
                 }
                 Symbol::Generic(generic)
-            },
+            }
             Rule::type_ => {
                 let inners = pair.into_inner();
-                Symbol::Type(inners.map(|x| x.as_str().to_string()).collect::<Vec<String>>().join(" "))
-            },
-            Rule::element => {
-                Symbol::parse_pair(pair.into_inner().next().unwrap())
-            },
+                Symbol::Type(
+                    inners
+                        .map(|x| x.as_str().to_string())
+                        .collect::<Vec<String>>()
+                        .join(" "),
+                )
+            }
+            Rule::element => Symbol::parse_pair(pair.into_inner().next().unwrap()),
             Rule::ty_element => {
                 let mut pairs = pair.into_inner();
                 let element = Symbol::parse_pair(pairs.next().unwrap());
                 let mut typed_element = Vec::new();
                 for p in pairs {
-                    typed_element.push(
-                        match p.as_rule() {
-                            Rule::const_ => TypedElement::Const,
-                            Rule::ptr => TypedElement::Ptr,
-                            Rule::ref_ => TypedElement::Ref,
-                            _ => unreachable!(),
-                        }
-                    )
+                    typed_element.push(match p.as_rule() {
+                        Rule::const_ => TypedElement::Const,
+                        Rule::ptr => TypedElement::Ptr,
+                        Rule::ref_ => TypedElement::Ref,
+                        _ => unreachable!(),
+                    })
                 }
                 Symbol::Typed(Box::new(element), typed_element)
-            },
-            e => panic!("Invalid symbol: {:?}", e)
+            }
+            e => panic!("Invalid symbol: {:?}", e),
         }
     }
 
     pub fn parse(s: &str) -> Symbol {
-        let pairs =  <CxxParser as Parser<Rule>>::parse(Rule::function, s).unwrap_or_else(|e| panic!("{}", e));
+        let pairs = <CxxParser as Parser<Rule>>::parse(Rule::function, s)
+            .unwrap_or_else(|e| panic!("{}", e));
         let pair = pairs.clone().next().unwrap();
         Symbol::parse_pair(pair)
     }
 }
 
-
 #[derive(Debug, Clone)]
 struct Mangler {
     used_namespace: Vec<Symbol>,
-    should_be_const: bool
+    should_be_const: bool,
 }
 
 impl Mangler {
     fn new() -> Self {
         Mangler {
             used_namespace: Vec::new(),
-            should_be_const: false
+            should_be_const: false,
         }
     }
     fn mangle(&mut self, symbol: Symbol) -> String {
         match symbol {
-            Symbol::Namespace(n) => {
-                self.mangle_namespace(n)
-            },
-            Symbol::Type(n) => {
-                self.mangle_type(n)
-            }
-            Symbol::Generic(gen) => {
-                self.mangle_generic(gen)
-            },
-            Symbol::Function(
-                c, a
-            ) => {
-                self.mangle_function(*c, a)
-            },
+            Symbol::Namespace(n) => self.mangle_namespace(n),
+            Symbol::Type(n) => self.mangle_type(n),
+            Symbol::Generic(gen) => self.mangle_generic(gen),
+            Symbol::Function(c, a) => self.mangle_function(*c, a),
             Symbol::Typed(s, te) => {
                 let mut string = String::new();
                 if let Symbol::Function(..) = *s {
@@ -136,16 +129,15 @@ impl Mangler {
                     string.push(match e {
                         TypedElement::Ptr => 'P',
                         TypedElement::Const => 'K',
-                        TypedElement::Ref => 'R'
+                        TypedElement::Ref => 'R',
                     })
                 }
 
                 string.push_str(&self.mangle(*s));
 
-
                 string
             }
-            e => panic!("Invalid symbol: {:?}", e)
+            e => panic!("Invalid symbol: {:?}", e),
         }
     }
 
@@ -201,7 +193,7 @@ impl Mangler {
             "long long" => "x",
             "unsigned long long" => "y",
             "ellipsis" => "z",
-            _ => binding.as_str()
+            _ => binding.as_str(),
         });
 
         s
@@ -232,7 +224,6 @@ pub fn mangle(s: impl ToSymbol) -> String {
     let mut mangled = Mangler::new();
     "_Z".to_string() + &mangled.mangle(s.to_symbol())
 }
-
 
 pub trait ToSymbol {
     fn to_symbol(&self) -> Symbol;
