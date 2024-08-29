@@ -1,0 +1,11 @@
+WHITESPACE   = _{ " " | "\t" | "\n" }
+ident = @{ ASCII_ALPHA ~ (ASCII_ALPHA | ASCII_DIGIT | "_" )* }
+type_ = { ident+ }
+ptr = @{ "*" }
+ref_ = @{ "&" }
+const_ = @{ "const" }
+namespace = { type_ ~ (("::" ~ type_) | generic )+ }
+generic = { "<" ~ ty_element ~ ">" }
+ty_element = { element ~ (ptr | ref_ | const_)* }
+element = { namespace | generic | type_  }
+function = { element ~ "(" ~ ty_element? ~ ("," ~ ty_element)* ~ ")" ~ const_? }
