@@ -6,7 +6,7 @@ A simple Rust program that mangles and parse C++ symbol names using Itanium ABI.
 use mangler::*;
 
 fn main() {
-    let mangled = mangle("foo::bar::hello(int, float, std::string)".to_string());
+    let mangled = mangle("foo::bar::hello(int, float, std::string)");
     println!("{}", mangled) // _ZN3foo3bar5helloEifSs
 
     let mangled = mangle(
